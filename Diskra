@@ -1,0 +1,170 @@
+import copy, sys
+
+
+def custom_key(weight):
+    return weight[1]
+
+
+def encode(f1, f2):
+    with open(f1, 'r', encoding="utf-8") as f:
+        s = f.readlines()
+        x = ''
+        for i in range(len(s)):
+            x += s[i]
+    power = []
+    for i in range(len(x)):
+        if x[i] not in power:
+            power.append(x[i])
+    n = len(power)
+    m = 3
+    mass = [[0] * m for i in range(n)]
+    for i in range(n):
+        mass[i][0] = power[i]
+        mass[i][1] = x.count(power[i])
+        mass[i][2] = ''
+    mass.sort(key=custom_key)
+    work_m = copy.deepcopy(mass)
+    for i in range(n - 1):
+        first_l = work_m[0][0]
+        second_l = work_m[1][0]
+        first_c = work_m[0][1]
+        second_c = work_m[1][1]
+        leters = first_l + second_l
+        colvo = first_c + second_c
+        min_duo = min(first_c, second_c)
+        for j in range(n):
+            if min_duo == first_c:
+                if mass[j][0] in first_l:
+                    mass[j][2] += '0'
+                if mass[j][0] in second_l:
+                    mass[j][2] += '1'
+            else:
+                if mass[j][0] in first_l:
+                    mass[j][2] += '1'
+                if mass[j][0] in second_l:
+                    mass[j][2] += '0'
+        work_m.remove(work_m[0])
+        work_m[0][0] = leters
+        work_m[0][1] = colvo
+        work_m.sort(key=custom_key)
+    for i in range(n):
+        mass[i][2] = mass[i][2][::-1]
+    vivod = ''
+    for i in range(len(x)):
+        for j in range(n):
+            if x[i] == mass[j][0]:
+                vivod += mass[j][2]
+    leng = len(vivod)
+    counte = 0
+    while leng % 8 != 0:
+        vivod += '0'
+        counte += 1
+        leng += 1
+    text = ''
+    for i in range(8, leng + 1, 8):
+        cod = vivod[i - 8:i]
+        cod = chr(int(cod, 2))
+        text += cod
+
+        with open(f2, 'w', encoding="utf-8") as f:
+            f.write(str(n) + '\n')
+            for i in range(len(mass)):
+                f.write(mass[i][0] + " " + str(mass[i][1]) + '\n')
+
+            f.write(text)
+
+
+def decode(f2, f3):
+    with open(f2, 'r', encoding='utf-8') as f:
+        n = int(f.readline())
+        m = 3
+        mass = [[0] * m for i in range(n)]
+
+        for i in range(n):
+            x = f.readline()
+            if len(x) == 1:
+                x = f.readline()
+                mass[i][0] = '\n'
+                mass[i][1] = int(x[1:len(x) - 1])
+                mass[i][2] = ''
+            else:
+                mass[i][0] = x[0]
+                mass[i][1] = int(x[2:len(x) - 1])
+                mass[i][2] = ''
+        mass.sort(key=custom_key)
+        work_m = copy.deepcopy(mass)
+        for i in range(n - 1):
+            first_l = work_m[0][0]
+            second_l = work_m[1][0]
+            first_c = work_m[0][1]
+            second_c = work_m[1][1]
+            leters = first_l + second_l
+            colvo = first_c + second_c
+            min_duo = min(first_c, second_c)
+            for j in range(n):
+                if min_duo == first_c:
+                    if mass[j][0] in first_l:
+                        mass[j][2] += '0'
+                    if mass[j][0] in second_l:
+                        mass[j][2] += '1'
+                else:
+                    if mass[j][0] in first_l:
+                        mass[j][2] += '1'
+                    if mass[j][0] in second_l:
+                        mass[j][2] += '0'
+            work_m.remove(work_m[0])
+            work_m[0][0] = leters
+            work_m[0][1] = colvo
+            work_m.sort(key=custom_key)
+        for i in range(n):
+            mass[i][2] = mass[i][2][::-1]
+
+        text = ''
+        s = f.readlines()
+        for i in range(len(s)):
+            text += s[i]
+        counte = len(text) * 8
+        for i in range(len(mass)):
+            counte -= mass[i][1] * len(mass[i][2])
+        slova = ''
+        for i in range(len(text)):
+            cal = bin(ord(text[i]))[2:]
+            cal = (8 - len(cal)) * "0" + cal
+            slova += cal
+
+        dist = 0
+        for i in range(len(mass)):
+            dist += mass[i][1]
+        for i in range(dist):
+            counter = 0
+            cum = slova[i]
+            while counter != -1:
+                for j in range(n):
+                    if cum == mass[j][2]:
+                        slova = slova.replace(cum, mass[j][0], 1)
+                        counter = -1
+                if counter != -1:
+                    counter += 1
+                    cum += slova[i + counter]
+        slova = slova[:len(slova) - counte]
+
+        with open(f3, 'w', encoding='utf-8') as f:
+            f.write(slova)
+
+
+if __name__ == '__main__':
+    pars = sys.argv
+    try:
+        if pars[1] == '--encode':
+            file1 = pars[2]
+            file2 = pars[3]
+            encode(file1, file2)
+        elif pars[1] == '--decode':
+            file1 = pars[2]
+            file2 = pars[3]
+            decode(file1, file2)
+    except Exception:
+        print("Неизвестная ошибка: проверьте правильность введённых данных")
+
+# encode("test.txt", "shiza.txt")
+# decode("shiza.txt", "lastmove.txt")
