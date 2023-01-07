@@ -7,9 +7,6 @@ public class NaturePower extends Entity implements Interaction{
         this.name = name;
         this.condition = condition;
     }
-    public String setName(String name){
-        return name;
-    }
     @Override
     public String toString() {
         return name;
